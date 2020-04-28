@@ -1,0 +1,69 @@
+--main--
+public function index()
+	{
+		$this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email');
+		$this->form_validation->set_rules('password', 'Password', 'required|trim|min_length[3]');
+		if ($this->form_validation->run() == false) {
+			$data['title'] = 'Login';
+			$this->load->view('header', $data);
+			$this->load->view('login');
+			$this->load->view('footer');
+		} else {
+			$email = $this->input->post('email');
+			$password = $this->input->post('password');
+
+			$user = $this->db->get_where('users', ['email' => $email])->row_array();
+
+			if ($user) {
+				if (password_verify($password, $user['password'])) {
+					$data = [
+						'id' => $user['id'],
+						'email' => $user['email'],
+						'name' => $user['name'],
+						'image' => $user['image'],
+						'birth_date' => $user['birth_date'],
+						'role_id' => $user['role_id'],
+						'jenis_kelamin' => $user['jenis_kelamin']
+					];
+					$this->session->set_userdata($data);
+					if ($user['role_id'] == 1) {
+						redirect('c_dokter');
+					} else if ($user['role_id'] == 2) {
+						redirect('c_pasien');
+					}
+				} else {
+					$this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Wrong password !</div>');
+					redirect('c_main');
+				}
+			} else {
+				$this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Sorry, your email have not been registered.</div>');
+				redirect('c_main');
+			}
+		}
+	}
+
+	public function guest()
+	{
+		$data['title'] = 'Home - Guest';
+		$this->load->view('header', $data);
+		$this->load->view('index_guest');
+		$this->load->view('footer');
+	}
+
+--pasien--
+public function index()
+    {
+        $data['title'] = 'Home - Pasien';
+        $this->load->view('header', $data);
+        $this->load->view('index_pasien');
+        $this->load->view('footer');
+    }
+
+--dokter--
+public function index()
+    {
+        $data['title'] = 'Home - Dokter';
+        $this->load->view('header', $data);
+        $this->load->view('index_dokter');
+        $this->load->view('footer');
+    }
